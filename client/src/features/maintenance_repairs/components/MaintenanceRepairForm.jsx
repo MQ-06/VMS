@@ -8,7 +8,6 @@ import { fetchUsers } from '@/services/userService';
 import { fetchPartsServices } from '@/services/partService';
 import { fetchRepairCategories } from '@/services/repairCategoryService';
 
-
 const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
   const [form, setForm] = useState({
     customer: '', fleet: '', vehicle: '', supplier: '',
@@ -39,39 +38,38 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
   }, [initialValues, isEdit]);
 
   useEffect(() => {
-    fetchCustomers().then(res =>
-      setDropdowns(prev => ({ ...prev, customers: res.data.filter(c => c.active) }))
-    );
-    fetchPartsServices().then(res =>
-      setDropdowns(prev => ({ ...prev, parts: res.data.filter(p => p.active) }))
-    );
+    fetchCustomers().then(res => {
+      console.log('Fetched customers:', res.data);
+      setDropdowns(prev => ({ ...prev, customers: res.data.filter(c => c.active) }));
+    });
+    fetchPartsServices().then(res => {
+      console.log('Fetched parts:', res.data);
+      setDropdowns(prev => ({ ...prev, parts: res.data.filter(p => p.active) }));
+    });
   }, []);
 
   useEffect(() => {
     if (!form.customer) return;
 
-    console.log('Fetching dependent data for customer:', form.customer);
-
-    fetchFleets({ customer: form.customer }).then(res => {
-      console.log('Fleets:', res.data);
+    fetchFleets({ customerId: form.customer }).then(res => {
+      console.log('Fetched fleets:', res.data);
       setDropdowns(prev => ({ ...prev, fleets: res.data.filter(f => f.active) }));
     });
 
-    fetchSuppliers({ customer: form.customer }).then(res => {
-      console.log('Suppliers:', res.data);
+    fetchSuppliers({ customerId: form.customer }).then(res => {
+      console.log('Fetched suppliers:', res.data);
       setDropdowns(prev => ({ ...prev, suppliers: res.data.filter(s => s.active) }));
     });
 
-    fetchUsers({ customer: form.customer }).then(res => {
-      console.log('Users:', res.data);
+    fetchUsers({ customerId: form.customer }).then(res => {
+      console.log('Fetched users:', res.data);
       setDropdowns(prev => ({ ...prev, users: res.data.filter(u => u.active) }));
     });
   }, [form.customer]);
 
   useEffect(() => {
     if (form.customer && form.fleet) {
-      console.log('Fetching vehicles with:', form.customer, form.fleet);
-      fetchVehicles({ customer: form.customer, fleet: form.fleet }).then(res => {
+      fetchVehicles({ customerId: form.customer, fleetId: form.fleet }).then(res => {
         console.log('Fetched vehicles:', res.data);
         setDropdowns(prev => ({ ...prev, vehicles: res.data.filter(v => v.active) }));
       });
@@ -80,11 +78,15 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
 
   useEffect(() => {
     if (form.customer && form.type) {
-      console.log('Fetching categories with:', form.customer, form.type);
-      fetchRepairCategories({ customer: form.customer, type: form.type }).then(res => {
-        console.log('Fetched categories:', res.data);
-        setDropdowns(prev => ({ ...prev, categories: res.data }));
-      });
+      console.log("Fetching categories for:", { customer: form.customer, type: form.type });
+      fetchRepairCategories({ customerId: form.customer, type: form.type })
+        .then(res => {
+          console.log("Filtered active categories:", res.data);
+          setDropdowns(prev => ({ ...prev, categories: res.data.filter(cat => cat.active) }));
+        })
+        .catch(err => {
+          console.error("Error fetching repair categories:", err);
+        });
     }
   }, [form.customer, form.type]);
 
@@ -148,12 +150,8 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
     setForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }));
   };
 
-
-
-
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Customer */}
       <div>
         <label>Customer</label>
         <select name="customer" value={form.customer} onChange={handleChange} className="input-style">
@@ -165,7 +163,6 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
         <ErrorMessage message={errors.customer} />
       </div>
 
-      {/* Fleet */}
       <div>
         <label>Fleet</label>
         <select name="fleet" value={form.fleet} onChange={handleChange} className="input-style">
@@ -177,19 +174,17 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
         <ErrorMessage message={errors.fleet} />
       </div>
 
-      {/* Vehicle */}
       <div>
         <label>Vehicle</label>
         <select name="vehicle" value={form.vehicle} onChange={handleChange} className="input-style">
           <option value="">Select Vehicle</option>
           {dropdowns.vehicles.map(v => (
-            <option key={v._id} value={v._id}>{v.vehicleIdentifier}</option>
+            <option key={v._id} value={v._id}>{v.name}</option>
           ))}
         </select>
         <ErrorMessage message={errors.vehicle} />
       </div>
 
-      {/* Supplier */}
       <div>
         <label>Supplier</label>
         <select name="supplier" value={form.supplier} onChange={handleChange} className="input-style">
@@ -201,7 +196,6 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
         <ErrorMessage message={errors.supplier} />
       </div>
 
-      {/* Type */}
       <div>
         <label>Repair or Maintenance</label>
         <select name="type" value={form.type} onChange={handleChange} className="input-style">
@@ -212,69 +206,56 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
         <ErrorMessage message={errors.type} />
       </div>
 
-      {/* Category */}
       <div>
         <label>Category</label>
         <select name="category" value={form.category} onChange={handleChange} className="input-style">
           <option value="">Select Category</option>
-          {dropdowns.categories
-            .filter(c => {
-              const catCustomer = c.customer?._id || c.customer;
-              return catCustomer === form.customer && c.type === form.type;
-            })
-            .map(c => (
-              <option key={c._id} value={c._id}>{c.categoryEnglish}</option>
-            ))}
+          {dropdowns.categories.map(cat => (
+            <option key={cat._id} value={cat._id}>{cat.categoryEn}</option>
+          ))}
         </select>
         <ErrorMessage message={errors.category} />
       </div>
 
-      {/* User */}
       <div>
         <label>Driver/User</label>
         <select name="user" value={form.user} onChange={handleChange} className="input-style">
           <option value="">Select User</option>
           {dropdowns.users.map(u => (
-            <option key={u._id} value={u._id}>{u.name}</option>
+            <option key={u._id} value={u._id}>{u.name || `${u.firstName} ${u.lastName}`}</option>
           ))}
         </select>
         <ErrorMessage message={errors.user} />
       </div>
 
-      {/* Date */}
       <div>
         <label>Date</label>
         <input type="date" name="date" value={form.date} onChange={handleChange} className="input-style" />
         <ErrorMessage message={errors.date} />
       </div>
 
-      {/* Mileage */}
       <div>
         <label>Mileage</label>
         <input type="number" name="mileage" value={form.mileage} onChange={handleChange} className="input-style" />
         <ErrorMessage message={errors.mileage} />
       </div>
 
-      {/* Cost */}
       <div>
         <label>Cost</label>
         <input type="number" name="cost" value={form.cost} onChange={handleChange} className="input-style" />
         <ErrorMessage message={errors.cost} />
       </div>
 
-      {/* Description */}
       <div className="md:col-span-2">
         <label>Description</label>
         <textarea name="description" value={form.description} onChange={handleChange} className="input-style" rows={3} />
       </div>
 
-      {/* Taxes */}
       <div>
         <label>Tax Amount</label>
         <input type="number" name="taxes" value={form.taxes} onChange={handleChange} className="input-style" />
       </div>
 
-      {/* Tags */}
       <div className="md:col-span-2">
         <label>Tags</label>
         <div className="flex flex-wrap gap-2 mb-2">
@@ -293,66 +274,6 @@ const MaintenanceRepairForm = ({ onSubmit, initialValues = {}, isEdit = false })
           placeholder="Type and press Enter"
           className="input-style"
         />
-      </div>
-
-      {/* Photos Upload */}
-      <div className="md:col-span-2">
-        <label className="block font-medium mb-2">Photos (up to 5)</label>
-        <input
-          id="photo-upload"
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleChange}
-          name="photos"
-        />
-        <label htmlFor="photo-upload" className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow inline-block">
-          Choose Photos
-        </label>
-        <p className="text-sm mt-2 text-gray-600">{form.photos.length} / 5 images selected</p>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {form.photos.map((file, idx) => (
-            <span key={idx} className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-              {file.name}
-              <button type="button" onClick={() =>
-                setForm(prev => ({
-                  ...prev,
-                  photos: prev.photos.filter((_, i) => i !== idx)
-                }))
-              } className="text-red-500 font-bold">×</button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Invoice Upload */}
-      <div className="md:col-span-2">
-        <label className="block font-medium mb-2">Invoice (PDF or Image)</label>
-        <input
-          id="invoice-upload"
-          type="file"
-          accept=".pdf,image/*"
-          className="hidden"
-          onChange={handleChange}
-          name="invoice"
-        />
-        <label htmlFor="invoice-upload" className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow inline-block">
-          Upload Invoice
-        </label>
-        {form.invoice && (
-          <span className="mt-2 inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-            {form.invoice.name}
-            <button type="button" onClick={() => setForm(prev => ({ ...prev, invoice: null }))} className="text-red-500 font-bold">×</button>
-          </span>
-        )}
-      </div>
-
-      {/* Submit */}
-      <div className="md:col-span-2 flex justify-end">
-        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
-          {isEdit ? 'Update Record' : 'Save Record'}
-        </button>
       </div>
     </form>
   );
