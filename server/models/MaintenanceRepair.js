@@ -19,8 +19,9 @@ const maintenanceRepairSchema = new mongoose.Schema({
   }],
   taxes: { type: Number },
   tags: [{ type: String }],
-  photos: [{ type: String }], // store file names or paths
-  invoice: { type: String } // file name or path
+  photos: [{ type: String }],
+  invoice: { type: String },
+  active: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('MaintenanceRepair', maintenanceRepairSchema);

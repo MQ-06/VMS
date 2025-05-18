@@ -1,6 +1,5 @@
 const MaintenanceRepair = require('../models/MaintenanceRepair');
 const fs = require('fs');
-const path = require('path');
 
 // GET all
 exports.getAll = async (req, res) => {
@@ -16,14 +15,16 @@ exports.getAll = async (req, res) => {
 // POST create
 exports.create = async (req, res) => {
   try {
-    const { tags, parts } = req.body;
+    const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
+    const parts = req.body.parts ? JSON.parse(req.body.parts) : [];
 
     const data = {
       ...req.body,
-      tags: JSON.parse(tags || '[]'),
-      parts: JSON.parse(parts || '[]'),
-      photos: req.files['photos']?.map(f => f.filename) || [],
-      invoice: req.files['invoice']?.[0]?.filename || null,
+      tags,
+      parts,
+      photos: req.files?.photos?.map(f => f.filename) || [],
+      invoice: req.files?.invoice?.[0]?.filename || null,
+      active: true
     };
 
     const record = new MaintenanceRepair(data);
@@ -34,29 +35,69 @@ exports.create = async (req, res) => {
   }
 };
 
-// PUT update
 exports.update = async (req, res) => {
   try {
-    const { tags, parts } = req.body;
+    const updateData = {};
 
-    const data = {
-      ...req.body,
-      tags: JSON.parse(tags || '[]'),
-      parts: JSON.parse(parts || '[]'),
-    };
+    const fields = [
+      'customer', 'fleet', 'vehicle', 'supplier',
+      'type', 'category', 'user', 'date', 'mileage',
+      'cost', 'description', 'taxes'
+    ];
 
-    if (req.files['photos']) {
-      data.photos = req.files['photos'].map(f => f.filename);
+    // Filter only valid fields
+    fields.forEach(field => {
+      if (req.body[field] && req.body[field].trim() !== '') {
+        updateData[field] = req.body[field];
+      }
+    });
+
+    if (req.body.tags) {
+      updateData.tags = JSON.parse(req.body.tags);
     }
 
-    if (req.files['invoice']) {
-      data.invoice = req.files['invoice'][0].filename;
+    if (req.body.parts) {
+      updateData.parts = JSON.parse(req.body.parts);
     }
 
-    const updated = await MaintenanceRepair.findByIdAndUpdate(req.params.id, data, { new: true });
+    if (req.files?.photos) {
+      updateData.photos = req.files.photos.map(f => f.filename);
+    }
+
+    if (req.files?.invoice) {
+      updateData.invoice = req.files.invoice[0].filename;
+    }
+
+    const updated = await MaintenanceRepair.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'MaintenanceRepair not found' });
+    }
+
     res.json(updated);
   } catch (err) {
+    console.error('Update Error:', err.message);
     res.status(400).json({ error: err.message });
+  }
+};
+
+
+// PATCH toggle active
+exports.toggleStatus = async (req, res) => {
+  try {
+    const repair = await MaintenanceRepair.findById(req.params.id);
+    if (!repair) return res.status(404).json({ error: 'Not found' });
+
+    repair.active = !repair.active;
+    await repair.save();
+
+    res.json({ message: 'Status updated', repair });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
