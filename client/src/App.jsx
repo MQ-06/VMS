@@ -16,7 +16,8 @@ import PartsServicesPage from '@/features/parts_services/PartsServicesPage';
 import MaintenanceRepairsPage from '@/features/maintenance_repairs/MaintenanceRepairsPage';
 import MyRecurringMaintenancePage from './features/recurring_maintenance/MyRecurringMaintenancePage';
 import RecurringMaintenanceSchedulePage from './features/Recurring Maintenance Schedule/RecurringMaintenanceSchedulePage';
-
+import CostsReportPage from './features/costs_reports/CostsReportPage';
+import AdminReportsPage from '@/features/administrative_reports/AdminReportsPage';
 
 function App() {
   return (
@@ -38,6 +39,10 @@ function App() {
         <Route path="/admin/parts-services" element={<PartsServicesPage />} />
         <Route path="/admin/maintenance-repairs" element={<MaintenanceRepairsPage />} />
         <Route path="/admin/recurring-maintenance" element={<MyRecurringMaintenancePage />} />
+        <Route path="/admin/section-costs" element={<CostsReportPage />} />
+        <Route path="/admin/admin-reports" element={<AdminReportsPage />} />
+
+
 <Route
   path="/admin/recurring-maintenance-schedule"
   element={<RecurringMaintenanceSchedulePage />}

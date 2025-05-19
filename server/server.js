@@ -67,5 +67,11 @@ app.use('/api/recurring-maintenance', recurringMaintenanceRoutes);
 const recurringScheduleRoutes = require('./routes/recurringScheduleRoutes');
 app.use('/api/recurring-maintenance-schedule', recurringScheduleRoutes);
 
+const costsReportRoutes = require('./routes/costsReportRoutes');
+app.use('/api/costs-reports', costsReportRoutes);
+
+const reportsRoutes = require('./routes/reports');
+app.use('/api/reports', reportsRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
