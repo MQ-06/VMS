@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import BackButton from '@/components/ui/BackButton';
 import ReportTable from './components/ReportTable';
-import {  fetchSubscriptions } from '@/services/adminReportsService';
+import {  fetchSubscriptions,fetchPayments, } from '@/services/adminReportsService';
 
 const AdminReportsPage = () => {
-//  const [payments, setPayments] = useState([]);
+ const [payments, setPayments] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
- // const [alerts, setAlerts] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 useEffect(() => {
   const fetchOnlySubscriptions = async () => {
@@ -31,9 +31,9 @@ useEffect(() => {
       <h1 className="text-2xl font-bold text-blue-800">Administrative Reports</h1>
 
       <div className="space-y-8">
-        {/* <ReportTable title="Payments Report" data={payments} loading={loading} /> */}
+        <ReportTable title="Payments Report" data={payments} loading={loading} /> 
         <ReportTable title="Subscriptions Report" data={subscriptions} loading={loading} />
-        {/* <ReportTable title="Alerts Report" data={alerts} loading={loading} /> */}
+        <ReportTable title="Alerts Report" data={alerts} loading={loading} /> 
       </div>
     </div>
   );

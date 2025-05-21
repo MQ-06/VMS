@@ -18,7 +18,7 @@ router.get('/subscriptions', async (req, res) => {
       initialDate: sub.subscriptionInitialDate?.toISOString().split('T')[0],
       currentPlan: sub.currentPlan?.name_en || '—',
       planDate: sub.currentSubscriptionPlanDate?.toISOString().split('T')[0],
-      fleetLimit: sub.currentPlanFleetAmount || '—',
+      fleetAmount: sub.currentPlanFleetAmount || '—',
       recurrence: sub.recurrence,
       price: `$${sub.price}`,
       renewalDate: sub.nextRenewalDate?.toISOString().split('T')[0],
