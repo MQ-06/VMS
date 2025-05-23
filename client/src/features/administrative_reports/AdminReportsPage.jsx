@@ -1,4 +1,3 @@
-// src/features/administrative_reports/AdminReportsPage.jsx
 import React, { useEffect, useState } from 'react';
 import BackButton from '@/components/ui/BackButton';
 import ReportTable from './components/ReportTable';
