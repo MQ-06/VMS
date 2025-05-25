@@ -1,4 +1,3 @@
-// src/features/recurring_maintenance_schedule/RecurringMaintenanceSchedulePage.jsx
 import { useEffect, useState } from 'react';
 import BackButton from '@/components/ui/BackButton';
 import EditButton from '@/components/ui/EditButton';
