@@ -12,6 +12,5 @@ export const updateCustomer = (data, id) =>
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
-  // Toggle customer active status
 export const updateCustomerStatus = (id) =>
   axios.post(`/api/customers/${id}/toggle-status`);
