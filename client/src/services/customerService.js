@@ -1,12 +1,10 @@
 import axios from 'axios';
 
-// Create new customer
 export const createCustomer = (data) =>
   axios.post('/api/customers', data, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
-// Fetch all customers
 export const fetchCustomers = () => axios.get('/api/customers');
 
 export const updateCustomer = (data, id) =>
