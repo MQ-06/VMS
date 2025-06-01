@@ -5,7 +5,6 @@ export const fetchFleets = (params = {}) => {
   return axios.get(`/api/fleets${query ? `?${query}` : ''}`);
 };
 
-// For fetching fleets of a specific customer only
 export const fetchFleetsByCustomer = (customerId) => {
   return axios.get(`/api/fleets?customer=${customerId}`);
 };
