@@ -1,4 +1,3 @@
-// server/models/RecurringSchedule.js
 const mongoose = require('mongoose');
 
 const RecurringScheduleSchema = new mongoose.Schema({
