@@ -9,7 +9,7 @@ const RecurringScheduleSchema = new mongoose.Schema({
   lastMileage: { type: Number, required: true },
   nextDate: { type: Date },
   nextMileage: { type: Number },
-  active: { type: Boolean, default: true } // ✅ Toggle field
+  active: { type: Boolean, default: true } 
 }, { timestamps: true });
 
 module.exports = mongoose.model('RecurringSchedule', RecurringScheduleSchema);
