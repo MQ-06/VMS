@@ -8,7 +8,7 @@ const TaxSchema = new mongoose.Schema({
   country: { type: String, required: true },
   states: [String],
   cities: [String],
-  active: { type: Boolean, default: true } // ✅ added
+  active: { type: Boolean, default: true } 
 });
 
 module.exports = mongoose.model('Tax', TaxSchema);
