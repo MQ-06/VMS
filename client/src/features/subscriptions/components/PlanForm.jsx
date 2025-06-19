@@ -15,13 +15,14 @@ const PlanForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
     fleetAmount: '',
   };
 
-  const [form, setForm] = useState({ ...defaultForm, ...initialValues });
+  const [form, setForm] = useState({ ...defaultForm });
   const [taxOptions, setTaxOptions] = useState([]);
   const [errors, setErrors] = useState({});
 
+  // Fetch taxes once on mount
   useEffect(() => {
     fetchTaxes().then((res) => {
-      const activeTaxes = res.data.filter((tax) => tax.active); // ✅ only active taxes
+      const activeTaxes = res.data.filter((tax) => tax.active);
       const options = activeTaxes.map((tax) => ({
         label: `${tax.name} (${tax.amount}${tax.type === 'percentage' ? '%' : '$'})`,
         value: tax._id,
@@ -30,26 +31,36 @@ const PlanForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
     });
   }, []);
 
+  // Only apply initial values once when editing
   useEffect(() => {
-    if (initialValues) {
-      setForm({ ...defaultForm, ...initialValues });
+    if (isEdit && Object.keys(initialValues).length > 0) {
+      setForm({
+        ...defaultForm,
+        ...initialValues,
+        amount: initialValues.amount?.toString() || '',
+        fleetAmount: initialValues.fleetAmount?.toString() || '',
+        applicableTaxes: initialValues.applicableTaxes || [],
+      });
     }
-  }, [initialValues]);
+  }, []); // ❗ run only once on mount
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleTaxChange = (selected) => {
-    setForm({ ...form, applicableTaxes: selected.map((s) => s.value) });
+    setForm((prev) => ({
+      ...prev,
+      applicableTaxes: selected.map((s) => s.value),
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const newErrors = {};
+
     if (!form.name_en.trim()) newErrors.name_en = 'English name is required';
     if (!form.name_es.trim()) newErrors.name_es = 'Spanish name is required';
     if (!form.amount || form.amount <= 0) newErrors.amount = 'Amount must be greater than 0';
@@ -59,6 +70,7 @@ const PlanForm = ({ onSubmit, initialValues = {}, isEdit = false }) => {
     if (Object.keys(newErrors).length > 0) return;
 
     onSubmit(form);
+
     if (!isEdit) {
       setForm(defaultForm);
       setErrors({});
